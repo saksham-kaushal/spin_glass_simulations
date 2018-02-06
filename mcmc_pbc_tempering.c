@@ -162,79 +162,16 @@ int main(void)
 		sites_struct sites;
 		
 		
-		#pragma omp parallel num_threads(TEMP) \
-		 default(none) \
+		#pragma omp parallel for \
 		 firstprivate(iseed,toten,totmin,nmeas,nskip,occ1,sten1,occmin,itemp,imeas,iskip,nmcs,sites,i,j,delst,a,c,beta) \
 		 shared(betaa,nmeas1,nskip1,distinv)
 
 		{
-			itemp=omp_get_thread_num();
-			beta=betaa[itemp];
-			nmeas=nmeas1[itemp];
-			nskip=nskip1[itemp];
-			
-			
-//			float delst, a, c;
-//			int imeas, iskip, nmcs, i, j;
-			printf("%ld %f %f %d %f %d %d\n",iseed,toten,totmin, itemp, beta, nmeas, nskip);
-			for(imeas=0;imeas<nmeas;imeas++)
+			for(itemp=0;itemp<TEMP;itemp++)
 			{
-				for(iskip=0;iskip<nskip;iskip++)
-				{
-					for(nmcs=0;nmcs<N2;nmcs++)
-					{
-						{
-							sites=choosesite(occ1,iseed);
-							delst=delsten(sten1, sites.ie, sites.je, sites.ih, sites.jh,distinv);
-							if(delst<=0.0)
-							{
-								occ1[sites.ie][sites.je] = -occ1[sites.ie][sites.je];
-								occ1[sites.ih][sites.jh] = -occ1[sites.ih][sites.jh];
-								toten+=delst;
-								updatehe(sites.ie, sites.je, sites.ih, sites.jh,sten1,distinv);
-								if (toten<totmin)
-								{
-									totmin = toten;
-									for(i=0;i<N;i++)
-									{
-										for(j=0;j<N;j++)
-										{
-											occmin[i][j] = occ1[i][j];
-										}
-									}
-								}
-							}
-							else
-							{
-								//printf("%f  ", beta);
-								a = exp(-delst*beta);
-								#pragma omp critical (random_no)
-								{c = (float)ran2(&iseed);}
-								if(c<a)
-								{
-									occ1[sites.ie][sites.je] = -occ1[sites.ie][sites.je];
-									occ1[sites.ih][sites.jh] = -occ1[sites.ih][sites.jh];
-									toten+=delst;
-									updatehe(sites.ie, sites.je, sites.ih, sites.jh,sten1,distinv);
-									if(toten<totmin)
-									{
-										totmin = toten;
-										for(i=0;i<N;i++)
-										{
-											for(j=0;j<N;j++)
-											{
-												occmin[i][j] = occ1[i][j];
-											}
-										}
-									}
-								}
-							}
-						}
-					}	// for nmcs loop
-				}	//for nskip loop
-			}	//omp for nmeas block
-		printf("temp=%f\ttoten=%f\n",beta,toten);
-		}	//omp parallel temp block
+				
+			}
+		}	//omp parallel for block
 	}	//config loop end
 
 //-----------------------------------------
@@ -405,116 +342,4 @@ void hamiltonian(float occ[3*N][3*N],float phi[N][N], float* toten, float *toten
 }
 
 //+++++++++++++++++++++++++++++++++++++++++
-
-sites_struct choosesite(float occ1[N][N], long iseed)
-{
-	int kk, x1, x2, ic, kc, n4, ie, je, ih, jh;
-	n4=N*N*N*N;		//faster than pow
-	long seed = -abs(iseed);
-	for(kk=0;kk<n4;kk++)
-	{
-		#pragma omp critical (random_no)
-		{
-			ic = (int)(ran2(&seed)*NS+1);
-		}
-		x1 = ic%N;
-		ie = x1-1;
-		
-		if(x1==0)
-		{
-			ie = N-1;
-			je = ic/N-1;
-		}
-		else
-		{
-			je = ic/N;
-		}
-		
-		if((occ1[ie][je])>0.0)
-		{
-			break;
-		}
-		else {;}
-	}
-	
-	for(kk=0;kk<n4;kk++)
-	{
-		#pragma omp critical (random_no)
-		{
-			kc = (int)((ran2(&seed))*NS+1);
-		}
-		x2 = kc%N;
-		ih = x2-1;
-		if(x2==0)
-		{
-			ih = N-1;
-			jh = kc/N-1;
-		}
-		else
-		{
-			jh = kc/N;
-		}
-		
-		if(occ1[ih][jh]<0.0)
-		{
-			break;
-		}
-		else {;}
-	}
-	sites_struct sites = {ie,je,ih,jh};
-	return sites;
-}
-
-//++++++++++++++++++++++++++++++++++++++++++++
-
-float delsten(float sten1[N][N], int ie, int je, int ih, int jh, float distinv[N][N])
-{
-	int ix, iy;
-	float delst;
-	ix = abs(ie-ih);
-	iy = abs(je-jh);
-	
-	delst = sten1[ih][jh]-sten1[ie][je];
-	if(!((ih==ie)&&(jh==je)))
-	{
-		delst-=distinv[ix][iy];
-	}
-	return delst;
-}
-
-//+++++++++++++++++++++++++++++++++++++++++++
-
-void updatehe(int ie, int je, int ih, int jh, float sten1[N][N], float distinv[N][N])
-{
-	int ix, iy, ik, ij, il, im;
-
-	for(ix=0;ix<N;ix++)
-	{
-		for(iy=0;iy<N;iy++)
-		{
-			ik=abs(ix-ih);
-			ij=abs(iy-jh);
-			il=abs(ix-ie);
-			im=abs(iy-je);
-			
-			if((ix==ie)&&(iy==je)) 
-			
-				{sten1[ix][iy]+=distinv[ik][ij];}
-				
-			if((ix==ih)&&(iy==jh)) 
-			
-				{sten1[ix][iy]-=distinv[il][im];}
-				
-			if(!(((ix==ie)&&(iy==je))||((ix==ih)&&(iy==jh))))
-			
-				{sten1[ix][iy]+=(distinv[ik][ij]-distinv[il][im]);}
-		}
-	}
-}
-
-
-
-
-
-
 

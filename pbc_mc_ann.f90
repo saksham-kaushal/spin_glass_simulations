@@ -42,7 +42,6 @@ REAL(KIND=8)::sten1(0:n-1,0:n-1),delst,start,finish,totenh
 	CALL intialocc(ns,n2,iseed,occ2)
 
 	CALL occupancy(n,ns,occ2,occ1)
-	print *,occ1
 
 	CALL rocc(n,iseed,occ,occ1,nsq2)
 
@@ -126,7 +125,7 @@ REAL(KIND=8)::sten1(0:n-1,0:n-1),delst,start,finish,totenh
 
 		call cpu_time (finish)
 
-!	print*, "k=",k,"temp",beta,"time",(start-finish)/60.0,"run",ntime,"toten=",toten
+	print*, "k=",k,"temp",beta,"time",(start-finish)/60.0,"run",ntime,"toten=",toten
 
 	ENDDO					! temp loop
 
