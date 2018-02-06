@@ -9,7 +9,7 @@
 #define N2 NS/2
 #define NCONFIG 1
 #define NSQ2 NS/2
-#define TEMP 10
+#define TEMP 5	//>3 for line 169
 
 //========================================
 //========================================
@@ -150,11 +150,11 @@ int main(void)
 			printf("\n");
 		}
 */
-		printf("%f\t%f\n", toten, totenst);
+//		printf("%f\t%f\n", toten, totenst);
 
 		hamiltonian(occ,phi,&toten,&totenst);
 		
-		printf("%f\t%f\n", toten, totenst);
+//		printf("%f\t%f\n", toten, totenst);
 
 		
 		float totmin=0.0, beta=0.0, occmin[N][N]={0}, delst=0, a=0, c=0;
@@ -162,13 +162,14 @@ int main(void)
 		sites_struct sites;
 		
 		
-		#pragma omp parallel num_threads(TEMP) \
+		#pragma omp parallel for \
 		 default(none) \
-		 firstprivate(iseed,toten,totmin,nmeas,nskip,occ1,sten1,occmin,itemp,imeas,iskip,nmcs,sites,i,j,delst,a,c,beta) \
-		 shared(betaa,nmeas1,nskip1,distinv)
+		 firstprivate(iseed,toten,totmin,nmeas,nskip,occ1,sten1,occmin,imeas,iskip,nmcs,sites,i,j,delst,a,c,beta) \
+		 shared(betaa,nmeas1,nskip1,distinv) \
+		 schedule (static, TEMP/4)
 
-		{
-			itemp=omp_get_thread_num();
+		for(itemp=0;itemp<TEMP;itemp++) {
+//			itemp=omp_get_thread_num();
 			beta=betaa[itemp];
 			nmeas=nmeas1[itemp];
 			nskip=nskip1[itemp];
@@ -176,7 +177,7 @@ int main(void)
 			
 //			float delst, a, c;
 //			int imeas, iskip, nmcs, i, j;
-			printf("%ld %f %f %d %f %d %d\n",iseed,toten,totmin, itemp, beta, nmeas, nskip);
+	//		printf("%ld %f %f %d %f %d %d\n",iseed,toten,totmin, itemp, beta, nmeas, nskip);
 			for(imeas=0;imeas<nmeas;imeas++)
 			{
 				for(iskip=0;iskip<nskip;iskip++)
