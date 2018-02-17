@@ -162,22 +162,23 @@ int main(void)
 		sites_struct sites;
 		
 		
-		#pragma omp parallel for \
+		#pragma omp parallel num_threads(TEMP) \
 		 default(none) \
 		 firstprivate(iseed,toten,totmin,nmeas,nskip,occ1,sten1,occmin,imeas,iskip,nmcs,sites,i,j,delst,a,c,beta) \
 		 shared(betaa,nmeas1,nskip1,distinv) \
-		 schedule (static, TEMP/4)
 
-		for(itemp=0;itemp<TEMP;itemp++) {
-//			itemp=omp_get_thread_num();
+//		for(itemp=0;itemp<TEMP;itemp++) 
+		{
+			int itemp=omp_get_thread_num();
+			printf("%d",omp_get_num_threads());
 			beta=betaa[itemp];
 			nmeas=nmeas1[itemp];
 			nskip=nskip1[itemp];
 			
-			
+			printf("%ld\n",&iseed);
 //			float delst, a, c;
 //			int imeas, iskip, nmcs, i, j;
-	//		printf("%ld %f %f %d %f %d %d\n",iseed,toten,totmin, itemp, beta, nmeas, nskip);
+//			printf("%ld %f %f %d %f %d %d\n",iseed,toten,totmin, itemp, beta, nmeas, nskip);
 			for(imeas=0;imeas<nmeas;imeas++)
 			{
 				for(iskip=0;iskip<nskip;iskip++)
