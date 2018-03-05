@@ -25,14 +25,14 @@ typedef struct
 //========================================
 //========================================
 
-double ran2(long *idum);
+//double ran2(long *idum);
 void distpbc(float distinv[N][N],float dpbc[N][N]);
-void initialocc(float occ2[NS], long iseed);
+void initialocc(float occ2[NS], int iseed);
 void occupancy(float occ2[NS],float occ1[N][N]);
 void rocc(float occ[3*N][3*N],float occ1[N][N]);
 void siteenergy(float occ[3*N][3*N], float phi[N][N], float sten1[N][N]);
 void hamiltonian(float occ[3*N][3*N],float phi[N][N], float* toten, float *totenst);
-sites_struct choosesite(float occ1[N][N], long iseed);
+sites_struct choosesite(float occ1[N][N], int iseed);
 float delsten(float sten1[N][N], int ie, int je, int ih, int jh, float distinv[N][N]);
 void updatehe(int ie, int je, int ih, int jh, float sten1[N][N], float distinv[N][N]);
 
@@ -56,7 +56,7 @@ int main(void)
 //------------------------------------------
 	
 	int it, jt, k;
-	long iseed;
+	int iseed;
 	
 	int nmeas1[TEMP], nskip1[TEMP];
 	
@@ -97,7 +97,7 @@ int main(void)
 		printf("\n");
 	}
 */
-	iseed = -1234567;
+	iseed = 1234567;
 	for (k=0;k<NCONFIG;k++)
 	{
 		//evaluate and write rsiteen to fp2
@@ -170,12 +170,12 @@ int main(void)
 //		for(itemp=0;itemp<TEMP;itemp++) 
 		{
 			int itemp=omp_get_thread_num();
-			printf("%d",omp_get_num_threads());
+//			printf("%d",omp_get_num_threads());
 			beta=betaa[itemp];
 			nmeas=nmeas1[itemp];
 			nskip=nskip1[itemp];
 			
-			printf("%ld\n",&iseed);
+			printf("%d\n",&iseed);
 //			float delst, a, c;
 //			int imeas, iskip, nmcs, i, j;
 //			printf("%ld %f %f %d %f %d %d\n",iseed,toten,totmin, itemp, beta, nmeas, nskip);
@@ -210,8 +210,8 @@ int main(void)
 							{
 								//printf("%f  ", beta);
 								a = exp(-delst*beta);
-								#pragma omp critical (random_no)
-								{c = (float)ran2(&iseed);}
+//								#pragma omp critical (random_no)
+								c = (float)rand_r(&iseed)/RAND_MAX;
 								if(c<a)
 								{
 									occ1[sites.ie][sites.je] = -occ1[sites.ie][sites.je];
@@ -272,12 +272,12 @@ void distpbc(float distinv[N][N],float dpbc[N][N])
 
 //++++++++++++++++++++++++++++++++++++++++
 
-void initialocc(float occ2[NS], long iseed)
+void initialocc(float occ2[NS], int iseed)
 {
 	int i,j;
 	double k;
-	long seed;
-	seed = -abs(iseed);
+	int seed;
+	seed = abs(iseed);
 	
 	for(i=0;i<NS;i++)
 	{
@@ -286,8 +286,8 @@ void initialocc(float occ2[NS], long iseed)
 	i=0;
 	while(i<N2)
 	{
-		#pragma omp critical (random_no)
-		k=ran2(&seed);
+//		#pragma omp critical (random_no)
+		k=(float)rand_r(&seed)/RAND_MAX;
 		j=(int)(k*NS);
 		if(occ2[j]!=-0.5)
 		{
@@ -408,17 +408,17 @@ void hamiltonian(float occ[3*N][3*N],float phi[N][N], float* toten, float *toten
 
 //+++++++++++++++++++++++++++++++++++++++++
 
-sites_struct choosesite(float occ1[N][N], long iseed)
+sites_struct choosesite(float occ1[N][N], int iseed)
 {
 	int kk, x1, x2, ic, kc, n4, ie, je, ih, jh;
 	n4=N*N*N*N;		//faster than pow
-	long seed = -abs(iseed);
+	int seed = abs(iseed);
 	for(kk=0;kk<n4;kk++)
 	{
-		#pragma omp critical (random_no)
-		{
-			ic = (int)(ran2(&seed)*NS+1);
-		}
+//		#pragma omp critical (random_no)
+		
+		ic = (int)(((float)rand_r(&seed)/RAND_MAX)*NS+1);
+		
 		x1 = ic%N;
 		ie = x1-1;
 		
@@ -441,10 +441,10 @@ sites_struct choosesite(float occ1[N][N], long iseed)
 	
 	for(kk=0;kk<n4;kk++)
 	{
-		#pragma omp critical (random_no)
-		{
-			kc = (int)((ran2(&seed))*NS+1);
-		}
+//		#pragma omp critical (random_no)
+		
+		kc = (int)(((float)rand_r(&seed)/RAND_MAX)*NS+1);
+		
 		x2 = kc%N;
 		ih = x2-1;
 		if(x2==0)
