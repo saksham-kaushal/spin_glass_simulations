@@ -13,11 +13,9 @@
 #define EPS 1.2e-7
 #define RNMX (1.0-EPS)
 
-#include<stdio.h>
-#include<omp.h>
+double ran2(long idum);
 
-double ran2(idum)
-     long *idum;
+double ran2(long idum)
 {
 	int j;
 	long k;
@@ -26,57 +24,31 @@ double ran2(idum)
 	static long iv[NTAB];
 	double temp;
 
-	if (*idum <= 0) {
-		if (-(*idum) < 1) *idum=1;
-		else *idum = -(*idum);
-		idum2=(*idum);
+	if (idum <= 0) {
+		if (-(idum) < 1) idum=1;
+		else idum = -(idum);
+		idum2=(idum);
 		for (j=NTAB+7;j>=0;j--) {
-			k=(*idum)/IQ1;
-			*idum=IA1*(*idum-k*IQ1)-k*IR1;
-			if (*idum < 0) *idum += IM1;
-			if (j < NTAB) iv[j] = *idum;
+			k=(idum)/IQ1;
+			idum=IA1*(idum-k*IQ1)-k*IR1;
+			if (idum < 0) idum += IM1;
+			if (j < NTAB) iv[j] = idum;
 		}
 		iy=iv[0];
 	}
-	k=(*idum)/IQ1;
-	*idum=IA1*(*idum-k*IQ1)-k*IR1;
-	if (*idum < 0) *idum += IM1;
+	k=(idum)/IQ1;
+	idum=IA1*(idum-k*IQ1)-k*IR1;
+	if (idum < 0) idum += IM1;
 	k=idum2/IQ2;
 	idum2=IA2*(idum2-k*IQ2)-k*IR2;
 	if (idum2 < 0) idum2 += IM2;
 	j=iy/NDIV;
 	iy=iv[j]-idum2;
-	iv[j] = *idum;
+	iv[j] = idum;
 	if (iy < 1) iy += IMM1;
 	if ((temp=AM*iy) > RNMX) return RNMX;
 	else return temp;
 }
-
-int main(void)
-{
-	int i;
-	long iseed1 = -124567;
-	long iseed2 = -154789;
-	
-	#pragma omp parallel num_threads(2) \
-	 shared(iseed1,iseed2) \
-	 firstprivate(i)
-	{
-	  if(omp_get_thread_num()==0)
-		{for(i=0;i<10;i++)
-		{
-			printf("%ld %f\n", &iseed1, (float)ran2(&iseed1));
-		}
-		}
-	  else if(omp_get_thread_num()==1)
-		{for(i=0;i<10;i++)
-		{
-			printf("%ld %f\n", &iseed2, (float)ran2(&iseed2));
-		}
-		}
-	}
-}
-
 #undef IM1
 #undef IM2
 #undef AM

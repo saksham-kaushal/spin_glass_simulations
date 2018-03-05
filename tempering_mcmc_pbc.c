@@ -9,7 +9,7 @@
 #define N2 NS/2
 #define NCONFIG 1
 #define NSQ2 NS/2
-#define TEMP 5	//>3 for line 169
+#define TEMP 5	//>3
 
 //========================================
 //========================================
