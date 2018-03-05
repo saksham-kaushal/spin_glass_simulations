@@ -9,7 +9,7 @@
 #define N2 NS/2
 #define NCONFIG 1
 #define NSQ2 NS/2
-#define TEMP 5	//>3
+#define TEMP 21	//>3
 
 //========================================
 //========================================
@@ -57,6 +57,7 @@ int main(void)
 	
 	int it, jt, k;
 	int iseed;
+	int iseeds_arr[TEMP];
 	
 	int nmeas1[TEMP], nskip1[TEMP];
 	
@@ -97,7 +98,8 @@ int main(void)
 		printf("\n");
 	}
 */
-	iseed = 1234567;
+	iseed = 12345;
+	
 	for (k=0;k<NCONFIG;k++)
 	{
 		//evaluate and write rsiteen to fp2
@@ -109,7 +111,11 @@ int main(void)
 		}
 		printf("\n\n");
 */
-		
+		int x;
+		for (x=0;x<TEMP;x++)
+		{
+			iseeds_arr[x]=rand_r(&iseed);
+		}
 		occupancy(occ2,occ1);
 /*		for(it=0;it<N;it++)
 		{
@@ -164,7 +170,7 @@ int main(void)
 		
 		#pragma omp parallel num_threads(TEMP) \
 		 default(none) \
-		 firstprivate(iseed,toten,totmin,nmeas,nskip,occ1,sten1,occmin,imeas,iskip,nmcs,sites,i,j,delst,a,c,beta) \
+		 firstprivate(iseeds_arr,toten,totmin,nmeas,nskip,occ1,sten1,occmin,imeas,iskip,nmcs,sites,i,j,delst,a,c,beta) \
 		 shared(betaa,nmeas1,nskip1,distinv) \
 
 //		for(itemp=0;itemp<TEMP;itemp++) 
@@ -175,7 +181,7 @@ int main(void)
 			nmeas=nmeas1[itemp];
 			nskip=nskip1[itemp];
 			
-			printf("%d\n",&iseed);
+			printf("%d\n",iseeds_arr[itemp]);
 //			float delst, a, c;
 //			int imeas, iskip, nmcs, i, j;
 //			printf("%ld %f %f %d %f %d %d\n",iseed,toten,totmin, itemp, beta, nmeas, nskip);
@@ -186,7 +192,7 @@ int main(void)
 					for(nmcs=0;nmcs<N2;nmcs++)
 					{
 						{
-							sites=choosesite(occ1,iseed);
+							sites=choosesite(occ1,iseeds_arr[itemp]);
 							delst=delsten(sten1, sites.ie, sites.je, sites.ih, sites.jh,distinv);
 							if(delst<=0.0)
 							{
@@ -211,7 +217,7 @@ int main(void)
 								//printf("%f  ", beta);
 								a = exp(-delst*beta);
 //								#pragma omp critical (random_no)
-								c = (float)rand_r(&iseed)/RAND_MAX;
+								c = (float)rand_r(&iseeds_arr[itemp])/RAND_MAX;
 								if(c<a)
 								{
 									occ1[sites.ie][sites.je] = -occ1[sites.ie][sites.je];
