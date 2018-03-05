@@ -26,15 +26,15 @@ typedef struct
 //========================================
 
 //double ran2(long *idum);
-void distpbc(float distinv[N][N],float dpbc[N][N]);
-void initialocc(float occ2[NS], int iseed);
-void occupancy(float occ2[NS],float occ1[N][N]);
-void rocc(float occ[3*N][3*N],float occ1[N][N]);
-void siteenergy(float occ[3*N][3*N], float phi[N][N], float sten1[N][N]);
-void hamiltonian(float occ[3*N][3*N],float phi[N][N], float* toten, float *totenst);
-sites_struct choosesite(float occ1[N][N], int iseed);
-float delsten(float sten1[N][N], int ie, int je, int ih, int jh, float distinv[N][N]);
-void updatehe(int ie, int je, int ih, int jh, float sten1[N][N], float distinv[N][N]);
+void distpbc(double distinv[N][N],double dpbc[N][N]);
+void initialocc(double occ2[NS], int iseed);
+void occupancy(double occ2[NS],double occ1[N][N]);
+void rocc(double occ[3*N][3*N],double occ1[N][N]);
+void siteenergy(double occ[3*N][3*N], double phi[N][N], double sten1[N][N]);
+void hamiltonian(double occ[3*N][3*N],double phi[N][N], double* toten, double *totenst);
+sites_struct choosesite(double occ1[N][N], int iseed);
+double delsten(double sten1[N][N], int ie, int je, int ih, int jh, double distinv[N][N]);
+void updatehe(int ie, int je, int ih, int jh, double sten1[N][N], double distinv[N][N]);
 
 //=========================================
 //=========================================
@@ -61,19 +61,19 @@ int main(void)
 	
 	int nmeas1[TEMP], nskip1[TEMP];
 	
-	float betaa[TEMP],distinv[N][N]={0},dpbc[N][N]={0}, phi[N][N]={0}, occ2[NS]={0}, occ1[N][N]={0}, occ[3*N][3*N]={0}, sten1[N][N]={0}, toten=0.0, totenst=0.0;
+	double betaa[TEMP],distinv[N][N]={0},dpbc[N][N]={0}, phi[N][N]={0}, occ2[NS]={0}, occ1[N][N]={0}, occ[3*N][3*N]={0}, sten1[N][N]={0}, toten=0.0, totenst=0.0;
 
 //------------------------------------------
 
 	for(it=0;it<TEMP;it++)
 	{
-		fscanf(fp1,"%f",&betaa[it]);
+		fscanf(fp1,"%lf",&betaa[it]);
 		fscanf(fp7,"%d\t%d",&nmeas1[it], &nskip1[it]);
 	}
 	
 /*	for(it=0;it<TEMP;it++)
 	{
-		printf("%f\n",betaa[it]);
+		printf("%lf\n",betaa[it]);
 		printf("%d\t%d\n",nmeas1[it],nskip1[it]);
 	}
 */
@@ -84,7 +84,7 @@ int main(void)
 	{
 		for(jt=0;jt<N;jt++)
 		{
-			printf("%f  ",distinv[it][jt]);
+			printf("%lf  ",distinv[it][jt]);
 		}
 		printf("\n");
 	}
@@ -93,7 +93,7 @@ int main(void)
 	{
 		for(jt=0;jt<N;jt++)
 		{
-			printf("%f  ",dpbc[it][jt]);
+			printf("%lf  ",dpbc[it][jt]);
 		}
 		printf("\n");
 	}
@@ -107,7 +107,7 @@ int main(void)
 /*								//for getting occ2
 		for(it=0;it<NS;it++)
 		{
-			printf("%f\t",occ2[it]);
+			printf("%lf\t",occ2[it]);
 		}
 		printf("\n\n");
 */
@@ -121,7 +121,7 @@ int main(void)
 		{
 			for(jt=0;jt<N;jt++)
 			{
-				printf("%f  ",occ1[it][jt]);
+				printf("%lf  ",occ1[it][jt]);
 			}
 			printf("\n");
 		}
@@ -132,7 +132,7 @@ int main(void)
 		{
 			for(jt=0;jt<3*N;jt++)
 			{
-				printf("%f  ",occ[it][jt]);
+				printf("%lf  ",occ[it][jt]);
 			}
 			printf("\n");
 		}
@@ -151,19 +151,19 @@ int main(void)
 		{
 			for(jt=0;jt<N;jt++)
 			{
-				printf("%f  ",sten1[it][jt]);
+				printf("%lf  ",sten1[it][jt]);
 			}
 			printf("\n");
 		}
 */
-//		printf("%f\t%f\n", toten, totenst);
+//		printf("%lf\t%lf\n", toten, totenst);
 
 		hamiltonian(occ,phi,&toten,&totenst);
 		
-//		printf("%f\t%f\n", toten, totenst);
+//		printf("%lf\t%lf\n", toten, totenst);
 
 		
-		float totmin=0.0, beta=0.0, occmin[N][N]={0}, delst=0, a=0, c=0;
+		double totmin=0.0, beta=0.0, occmin[N][N]={0}, delst=0, a=0, c=0;
 		int nmeas=0, nskip=0, itemp=0, imeas=0, iskip=0, nmcs=0, i=0, j=0;
 		sites_struct sites;
 		
@@ -181,10 +181,10 @@ int main(void)
 			nmeas=nmeas1[itemp];
 			nskip=nskip1[itemp];
 			
-			printf("%d\n",iseeds_arr[itemp]);
-//			float delst, a, c;
+//			printf("%d\n",iseeds_arr[itemp]);
+//			double delst, a, c;
 //			int imeas, iskip, nmcs, i, j;
-//			printf("%ld %f %f %d %f %d %d\n",iseed,toten,totmin, itemp, beta, nmeas, nskip);
+//			printf("%ld %lf %lf %d %lf %d %d\n",iseed,toten,totmin, itemp, beta, nmeas, nskip);
 			for(imeas=0;imeas<nmeas;imeas++)
 			{
 				for(iskip=0;iskip<nskip;iskip++)
@@ -214,10 +214,10 @@ int main(void)
 							}
 							else
 							{
-								//printf("%f  ", beta);
+								//printf("%lf  ", beta);
 								a = exp(-delst*beta);
 //								#pragma omp critical (random_no)
-								c = (float)rand_r(&iseeds_arr[itemp])/RAND_MAX;
+								c = (double)rand_r(&iseeds_arr[itemp])/RAND_MAX;
 								if(c<a)
 								{
 									occ1[sites.ie][sites.je] = -occ1[sites.ie][sites.je];
@@ -241,7 +241,7 @@ int main(void)
 					}	// for nmcs loop
 				}	//for nskip loop
 			}	//omp for nmeas block
-		printf("temp=%f\ttoten=%f\n",beta,toten);
+		printf("temp=%lf\ttoten=%.10lf\n",beta,toten);
 		}	//omp parallel temp block
 	}	//config loop end
 
@@ -257,7 +257,7 @@ int main(void)
 //=========================================
 //=========================================
 
-void distpbc(float distinv[N][N],float dpbc[N][N])
+void distpbc(double distinv[N][N],double dpbc[N][N])
 {
 	int ix, iy, j, k;
 	for(ix=0;ix<N;ix++)
@@ -269,7 +269,7 @@ void distpbc(float distinv[N][N],float dpbc[N][N])
 			if(ix>N/2) {k=abs(ix-N);}
 			if(iy>N/2) {j=abs(iy-N);}
 			
-			dpbc[ix][iy]=sqrt((float)((k*k)+(j*j)));
+			dpbc[ix][iy]=sqrt((double)((k*k)+(j*j)));
 			distinv[ix][iy]=1/dpbc[ix][iy];
 		}
 	}
@@ -278,7 +278,7 @@ void distpbc(float distinv[N][N],float dpbc[N][N])
 
 //++++++++++++++++++++++++++++++++++++++++
 
-void initialocc(float occ2[NS], int iseed)
+void initialocc(double occ2[NS], int iseed)
 {
 	int i,j;
 	double k;
@@ -293,7 +293,7 @@ void initialocc(float occ2[NS], int iseed)
 	while(i<N2)
 	{
 //		#pragma omp critical (random_no)
-		k=(float)rand_r(&seed)/RAND_MAX;
+		k=(double)rand_r(&seed)/RAND_MAX;
 		j=(int)(k*NS);
 		if(occ2[j]!=-0.5)
 		{
@@ -305,7 +305,7 @@ void initialocc(float occ2[NS], int iseed)
 
 //+++++++++++++++++++++++++++++++++++++++++
 
-void occupancy(float occ2[NS],float occ1[N][N])
+void occupancy(double occ2[NS],double occ1[N][N])
 {
 	int i, x1, ix, iy;
 	for(i=0;i<NS;i++)
@@ -328,7 +328,7 @@ void occupancy(float occ2[NS],float occ1[N][N])
 
 //+++++++++++++++++++++++++++++++++++++++
 
-void rocc(float occ[3*N][3*N],float occ1[N][N])
+void rocc(double occ[3*N][3*N],double occ1[N][N])
 {
 	int i, j, nx, ny, ix, jx;
 	for(i=0;i<N;i++)
@@ -351,10 +351,10 @@ void rocc(float occ[3*N][3*N],float occ1[N][N])
 
 //+++++++++++++++++++++++++++++++++++++++++
 
-void siteenergy(float occ[3*N][3*N], float phi[N][N], float sten1[N][N])
+void siteenergy(double occ[3*N][3*N], double phi[N][N], double sten1[N][N])
 {
 	int ix, iy, jx, jy, nrc;
-	float dist1;
+	double dist1;
 	for(ix=0;ix<N;ix++)
 	{
 		for(iy=0;iy<N;iy++)
@@ -367,7 +367,7 @@ void siteenergy(float occ[3*N][3*N], float phi[N][N], float sten1[N][N])
 				{
 					if(!((jx==nrc-1)&&(jy==nrc-1)))
 					{
-						dist1=sqrt((float)((-jx+nrc-1)*(-jx+nrc-1))+(float)((-jy+nrc-1)*(-jy+nrc-1)));
+						dist1=sqrt((double)((-jx+nrc-1)*(-jx+nrc-1))+(double)((-jy+nrc-1)*(-jy+nrc-1)));
 						sten1[ix][iy]+=((occ[jx+ix-nrc+1][jy+iy-nrc+1])/dist1);
 					}
 				}
@@ -378,10 +378,10 @@ void siteenergy(float occ[3*N][3*N], float phi[N][N], float sten1[N][N])
 
 //+++++++++++++++++++++++++++++++++++++++++
 
-void hamiltonian(float occ[3*N][3*N],float phi[N][N], float* toten, float *totenst)
+void hamiltonian(double occ[3*N][3*N],double phi[N][N], double* toten, double *totenst)
 {
 	int nrc, i, j, ix, iy, jx, jy;
-	float toten1=0.0, dist1;
+	double toten1=0.0, dist1;
 	nrc = N/2;
 	
 	for(i=0;i<N;i++)
@@ -401,7 +401,7 @@ void hamiltonian(float occ[3*N][3*N],float phi[N][N], float* toten, float *toten
 				{
 					if(!((jx==nrc-1)&&(jy==nrc-1)))
 					{
-						dist1=sqrt((float)((-jx+nrc-1)*(-jx+nrc-1))+(float)((-jy+nrc-1)*(-jy+nrc-1)));
+						dist1=sqrt((double)((-jx+nrc-1)*(-jx+nrc-1))+(double)((-jy+nrc-1)*(-jy+nrc-1)));
 						toten1+=((occ[ix][iy]*occ[jx+ix-nrc+1][jy+iy-nrc-1])/dist1);
 					}
 				}
@@ -414,7 +414,7 @@ void hamiltonian(float occ[3*N][3*N],float phi[N][N], float* toten, float *toten
 
 //+++++++++++++++++++++++++++++++++++++++++
 
-sites_struct choosesite(float occ1[N][N], int iseed)
+sites_struct choosesite(double occ1[N][N], int iseed)
 {
 	int kk, x1, x2, ic, kc, n4, ie, je, ih, jh;
 	n4=N*N*N*N;		//faster than pow
@@ -423,7 +423,7 @@ sites_struct choosesite(float occ1[N][N], int iseed)
 	{
 //		#pragma omp critical (random_no)
 		
-		ic = (int)(((float)rand_r(&seed)/RAND_MAX)*NS+1);
+		ic = (int)(((double)rand_r(&seed)/RAND_MAX)*NS+1);
 		
 		x1 = ic%N;
 		ie = x1-1;
@@ -449,7 +449,7 @@ sites_struct choosesite(float occ1[N][N], int iseed)
 	{
 //		#pragma omp critical (random_no)
 		
-		kc = (int)(((float)rand_r(&seed)/RAND_MAX)*NS+1);
+		kc = (int)(((double)rand_r(&seed)/RAND_MAX)*NS+1);
 		
 		x2 = kc%N;
 		ih = x2-1;
@@ -475,10 +475,10 @@ sites_struct choosesite(float occ1[N][N], int iseed)
 
 //++++++++++++++++++++++++++++++++++++++++++++
 
-float delsten(float sten1[N][N], int ie, int je, int ih, int jh, float distinv[N][N])
+double delsten(double sten1[N][N], int ie, int je, int ih, int jh, double distinv[N][N])
 {
 	int ix, iy;
-	float delst;
+	double delst;
 	ix = abs(ie-ih);
 	iy = abs(je-jh);
 	
@@ -492,7 +492,7 @@ float delsten(float sten1[N][N], int ie, int je, int ih, int jh, float distinv[N
 
 //+++++++++++++++++++++++++++++++++++++++++++
 
-void updatehe(int ie, int je, int ih, int jh, float sten1[N][N], float distinv[N][N])
+void updatehe(int ie, int je, int ih, int jh, double sten1[N][N], double distinv[N][N])
 {
 	int ix, iy, ik, ij, il, im;
 
