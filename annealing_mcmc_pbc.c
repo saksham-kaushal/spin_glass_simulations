@@ -10,7 +10,6 @@
 #define NCONFIG 1
 #define NSQ2 NS/2
 #define TEMP 21	//>3
-#define NUM_EXCHANGES 1
 
 //========================================
 //========================================
@@ -246,14 +245,6 @@ int main(void)
 				}	//for nskip loop
 			}	//omp for nmeas block
 			printf("temp=%lf\ttoten=%.10lf\n",beta,toten);
-			
-			for (exchange=0;exchange<NUM_EXCHANGES;exchange++)
-			{
-				#pragma omp barrier
-					
-				#pragma omp barrier
-				
-			}	//tempering exchange block
 		}	//omp parallel temp block
 	}	//config loop end
 
