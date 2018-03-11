@@ -36,6 +36,7 @@ void hamiltonian(double occ[3*N][3*N],double phi[N][N], double* toten, double *t
 sites_struct choosesite(double occ1[N][N], int iseed);
 double delsten(double sten1[N][N], int ie, int je, int ih, int jh, double distinv[N][N]);
 void updatehe(int ie, int je, int ih, int jh, double sten1[N][N], double distinv[N][N]);
+double montecarlo(int iseeds_arr[TEMP],double occ1[N][N],double sten1[N][N],double occmin[N][N],sites_struct sites,double delst,double betaa[TEMP],int nmeas1[TEMP],int nskip1[TEMP],double distinv[N][N],int itemp, double toten_arr[TEMP], double totmin_arr[TEMP],double toten);
 
 //=========================================
 //=========================================
@@ -62,7 +63,7 @@ int main(void)
 	
 	int nmeas1[TEMP], nskip1[TEMP];
 	
-	double betaa[TEMP],distinv[N][N]={0},dpbc[N][N]={0}, phi[N][N]={0}, occ2[NS]={0}, occ1[N][N]={0}, occ[3*N][3*N]={0}, sten1[N][N]={0}, toten=0.0, totenst=0.0;
+	double betaa[TEMP],distinv[N][N]={0},dpbc[N][N]={0}, phi[N][N]={0}, occ2[NS]={0}, occ1[N][N]={0}, occ[3*N][3*N]={0}, sten1[N][N]={0}, toten=0.0, totenst=0.0, toten_arr[TEMP]={0.0},totmin_arr[TEMP]={0};
 
 //------------------------------------------
 
@@ -164,97 +165,98 @@ int main(void)
 //		printf("%lf\t%lf\n", toten, totenst);
 
 		
-		double totmin=0.0, beta=0.0, occmin[N][N]={0}, delst=0, a=0, c=0;
-		int nmeas=0, nskip=0, itemp=0, imeas=0, iskip=0, nmcs=0, i=0, j=0;
+		double totmin=0.0, occmin[N][N]={0}, delst=0.0;
+		int nmeas=0, nskip=0, nmcs=0, i=0;
 		sites_struct sites;
 		
 		int exchange;
 		
 		#pragma omp parallel num_threads(TEMP) \
 		 default(none) \
-		 firstprivate(iseeds_arr,toten,totmin,nmeas,nskip,occ1, \
-		 sten1,occmin, imeas,iskip,nmcs,sites,i,j,delst,a,c,beta, \
+		 firstprivate(iseeds_arr,toten,totmin,nmeas,nskip,occ1,sten1,occmin,sites,delst, \
 		 exchange) \
-		 shared(betaa,nmeas1,nskip1,distinv) \
-
-//		for(itemp=0;itemp<TEMP;itemp++) 
+		 shared(betaa,nmeas1,nskip1,distinv,toten_arr,totmin_arr,iseed) \
+ 
 		{
-			int itemp=omp_get_thread_num();
-//			printf("%d",omp_get_num_threads());
-			beta=betaa[itemp];
-			nmeas=nmeas1[itemp];
-			nskip=nskip1[itemp];
-			
-//			printf("%d\n",iseeds_arr[itemp]);
-//			double delst, a, c;
-//			int imeas, iskip, nmcs, i, j;
-//			printf("%ld %lf %lf %d %lf %d %d\n",iseed,toten,totmin, itemp, beta, nmeas, nskip);
-			for(imeas=0;imeas<nmeas;imeas++)
-			{
-				for(iskip=0;iskip<nskip;iskip++)
-				{
-					for(nmcs=0;nmcs<N2;nmcs++)
-					{
-						{
-							sites=choosesite(occ1,iseeds_arr[itemp]);
-							delst=delsten(sten1, sites.ie, sites.je, sites.ih, sites.jh,distinv);
-							if(delst<=0.0)
-							{
-								occ1[sites.ie][sites.je] = -occ1[sites.ie][sites.je];
-								occ1[sites.ih][sites.jh] = -occ1[sites.ih][sites.jh];
-								toten+=delst;
-								updatehe(sites.ie, sites.je, sites.ih, sites.jh,sten1,distinv);
-								if (toten<totmin)
-								{
-									totmin = toten;
-									for(i=0;i<N;i++)
-									{
-										for(j=0;j<N;j++)
-										{
-											occmin[i][j] = occ1[i][j];
-										}
-									}
-								}
-							}
-							else
-							{
-								//printf("%lf  ", beta);
-								a = exp(-delst*beta);
-//								#pragma omp critical (random_no)
-								c = (double)rand_r(&iseeds_arr[itemp])/RAND_MAX;
-								if(c<a)
-								{
-									occ1[sites.ie][sites.je] = -occ1[sites.ie][sites.je];
-									occ1[sites.ih][sites.jh] = -occ1[sites.ih][sites.jh];
-									toten+=delst;
-									updatehe(sites.ie, sites.je, sites.ih, sites.jh,sten1,distinv);
-									if(toten<totmin)
-									{
-										totmin = toten;
-										for(i=0;i<N;i++)
-										{
-											for(j=0;j<N;j++)
-											{
-												occmin[i][j] = occ1[i][j];
-											}
-										}
-									}
-								}
-							}
-						}
-					}	// for nmcs loop
-				}	//for nskip loop
-			}	//omp for nmeas block
-			printf("temp=%lf\ttoten=%.10lf\n",beta,toten);
+			int itemp=omp_get_thread_num();	
+			toten=montecarlo(iseeds_arr, occ1, sten1, occmin, sites, delst, betaa, nmeas1, nskip1, distinv, itemp, toten_arr, totmin_arr, toten);
 			
 			for (exchange=0;exchange<NUM_EXCHANGES;exchange++)
 			{
+				int i;
 				#pragma omp barrier
-					
+				#pragma omp master
+				{
+					printf("\n");
+					for (i=0;i<TEMP;i++)
+					{
+						printf("%14.10lf\t",toten_arr[i]);
+					}
+					printf("\n\nNow exchanging..\n\n");
+					int x=0;
+					for(x=TEMP-1;x>0;x--)
+					{
+						double del_e=toten_arr[x-1]-toten_arr[x];
+						if(del_e<0)
+						{
+							double temp_temp=toten_arr[x];
+							toten_arr[x]=toten_arr[x-1];
+							toten_arr[x-1]=temp_temp;
+						}
+						else
+						{
+							if(((double)rand_r(&iseed)/RAND_MAX)<exp(del_e*(betaa[x-1]-betaa[x])))
+							{
+								double temp_temp=toten_arr[x];
+								toten_arr[x]=toten_arr[x-1];
+								toten_arr[x-1]=temp_temp;
+							}
+						}
+					}
+					for (i=0;i<TEMP;i++)
+					{
+						printf("%14.10lf\t",toten_arr[i]);
+					}
+					printf("\n\nExchanged..\n\n");
+				}				
 				#pragma omp barrier
 				
-			}	//tempering exchange block
-		}	//omp parallel temp block
+				i=0;
+				while(i<=TEMP)
+				{
+					if (toten_arr[i]==toten)
+					{
+						itemp=i;
+						break;
+					}
+					i++;
+				}
+				if(i==TEMP)
+				{
+					printf("\nNot found\n");
+					exit(1);
+				}
+				printf("itemp=%4d\t\ttoten=%14.10lf\n",itemp,toten);
+				
+				#pragma omp barrier
+				#pragma omp master
+				{
+					printf("\n");
+				}
+				
+				toten=montecarlo(iseeds_arr, occ1, sten1, occmin, sites, delst, betaa, nmeas1, nskip1, distinv, itemp, toten_arr, totmin_arr, toten);
+				#pragma omp barrier
+				#pragma omp master
+				{
+					printf("\n");
+					for (i=0;i<TEMP;i++)
+					{
+						printf("%14.10lf\t",toten_arr[i]);
+					}
+					printf("\n");
+				}
+			}	//tempering: exchange block
+		}	//tempering: parallel block
 	}	//config loop end
 
 //-----------------------------------------
@@ -268,6 +270,86 @@ int main(void)
 
 //=========================================
 //=========================================
+
+double montecarlo(int iseeds_arr[TEMP],double occ1[N][N],double sten1[N][N],double occmin[N][N], sites_struct sites,double delst,double betaa[TEMP],int nmeas1[TEMP],int nskip1[TEMP],double distinv[N][N],int itemp, double toten_arr[TEMP], double totmin_arr[TEMP], double toten)
+{
+//	printf("%d",omp_get_num_threads());
+	double beta=betaa[itemp], totmin=0.0;
+	int nmeas=nmeas1[itemp];
+	int nskip=nskip1[itemp];
+	
+	double a=0.0, c=0.0;
+	int i=0, j=0;
+			
+//	printf("%d\n",iseeds_arr[itemp]);
+//	double delst, a, c;
+//	int imeas, iskip, nmcs, i, j;
+//	printf("%ld %lf %lf %d %lf %d %d\n",iseed,toten,totmin, itemp, beta, nmeas, nskip);
+	int imeas=0, iskip=0, nmcs=0;
+	for(imeas=0;imeas<nmeas;imeas++)
+	{
+		for(iskip=0;iskip<nskip;iskip++)
+		{
+			for(nmcs=0;nmcs<N2;nmcs++)
+			{
+				{
+					sites=choosesite(occ1,iseeds_arr[itemp]);
+					delst=delsten(sten1, sites.ie, sites.je, sites.ih, sites.jh,distinv);
+					if(delst<=0.0)
+					{
+						occ1[sites.ie][sites.je] = -occ1[sites.ie][sites.je];
+						occ1[sites.ih][sites.jh] = -occ1[sites.ih][sites.jh];
+						toten+=delst;
+						updatehe(sites.ie, sites.je, sites.ih, sites.jh,sten1,distinv);
+						if (toten<totmin)
+						{
+							totmin = toten;
+							for(i=0;i<N;i++)
+							{
+								for(j=0;j<N;j++)
+								{
+									occmin[i][j] = occ1[i][j];
+								}
+							}
+						}
+					}
+					else
+					{
+						//printf("%lf  ", beta);
+						a = exp(-delst*beta);
+//						#pragma omp critical (random_no)
+						c = (double)rand_r(&iseeds_arr[itemp])/RAND_MAX;
+						if(c<a)
+						{
+							occ1[sites.ie][sites.je] = -occ1[sites.ie][sites.je];
+							occ1[sites.ih][sites.jh] = -occ1[sites.ih][sites.jh];
+							toten+=delst;
+							updatehe(sites.ie, sites.je, sites.ih, sites.jh,sten1,distinv);
+							if(toten<totmin)
+							{
+								totmin = toten;
+								for(i=0;i<N;i++)
+								{
+									for(j=0;j<N;j++)
+									{
+										occmin[i][j] = occ1[i][j];
+									}
+								}
+							}
+						}
+					}
+				}
+			}	// for nmcs loop
+		}	//for nskip loop
+	}	//omp for nmeas block
+	toten_arr[itemp]=toten;
+	totmin_arr[itemp]=totmin;
+	printf("temp=%10.5lf\t\ttoten=%14.10lf\n",beta,toten);
+	return toten;
+}	//omp parallel temp block
+
+
+//+++++++++++++++++++++++++++++++++++++++++
 
 void distpbc(double distinv[N][N],double dpbc[N][N])
 {
